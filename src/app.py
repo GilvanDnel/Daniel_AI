@@ -18,14 +18,20 @@ from src.ui.sidebar import render_sidebar
 SUPPORTED_UPLOADS = ["pdf", "docx", "pptx", "csv", "xlsx", "md", "txt"]
 
 
-def _init_state() -> None:
-    if "messages" not in st.session_state:
+if "messages" not in st.session_state:
         st.session_state.messages = [
             {
                 "role": "assistant",
                 "content": (
-                    "Olá! Eu sou o Daniel. Posso responder perguntas sobre documentos "
-                    "autorizados da DNEL SOM. Como posso ajudar?"
+                    "Olá! Eu sou o Daniel, assistente da DNEL SOM. Você pode me perguntar "
+                    "livremente, ou usar estas ideias como ponto de partida:\n\n"
+                    "1️⃣ Férias, benefícios e banco de horas (RH)\n"
+                    "2️⃣ Senhas, acessos e VPN (TI)\n"
+                    "3️⃣ LGPD e questões contratuais (Jurídico)\n"
+                    "4️⃣ Comissões, descontos e vendas (Comercial)\n"
+                    "5️⃣ Trocas, garantias e reembolsos (Atendimento/Financeiro)\n"
+                    "6️⃣ Analisar uma planilha ou documento que você enviar\n\n"
+                    "Pode digitar o número, ou já escrever sua pergunta direto."
                 ),
             }
         ]
