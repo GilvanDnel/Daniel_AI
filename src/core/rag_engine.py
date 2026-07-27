@@ -1,118 +1,97 @@
-"""
-rag_engine.py
+"""RAG engine for Daniel Knowledge."""
 
-O "cérebro" do Daniel: recebe uma pergunta, busca os trechos relevantes na
-base vetorial (vector_store) e usa o Gemini para gerar uma resposta,
-SEMPRE citando as fontes e NUNCA inventando informação fora do contexto
-recuperado.
-"""
-
-import os
+from __future__ import annotations
 
 import google.generativeai as genai
-from dotenv import load_dotenv
-from pathlib import Path
 
-from src.core.vector_store import query as vector_query
+from src.config.settings import settings
+from src.core.errors import build_quota_message, is_quota_error
+from src.core.escalation import build_escalation_message
+from src.core.vector_store import has_relevant_context, query as vector_query
 
-_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-load_dotenv(dotenv_path=_PROJECT_ROOT / ".env")
 
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+SYSTEM_PROMPT = """Você é Daniel, assistente corporativo inteligente da DNEL SOM Serviços Inteligentes.
 
-MODEL_NAME = "gemini-flash-latest"
-
-SYSTEM_PROMPT = """Você é o Daniel, o assistente corporativo inteligente da
-empresa DNEL SOM Serviços Inteligentes.
-
-REGRAS OBRIGATÓRIAS:
-1. Responda SOMENTE com base nos trechos de contexto fornecidos abaixo.
-2. Se a resposta não estiver claramente presente no contexto, diga que não
-   encontrou essa informação na base de conhecimento e sugira o setor
-   responsável para o usuário procurar.
-3. Nunca invente, deduza ou complete informações que não estejam no contexto.
-4. Sempre que possível, cite o documento de origem da informação.
-5. Seja claro, objetivo e use linguagem profissional, mas acessível.
-6. {instrucao_apresentacao}
+Regras obrigatórias:
+1. Responda somente com base no contexto recuperado.
+2. Se o contexto não responder claramente, diga que não encontrou a informação.
+3. Nunca invente dados, políticas, valores, prazos ou nomes.
+4. Cite documentos de origem quando possível.
+5. Use linguagem profissional, direta e acessível.
+6. {presentation_instruction}
 """
 
-INSTRUCAO_PRIMEIRA_INTERACAO = (
-    "Esta é a primeira pergunta da conversa: pode se apresentar brevemente "
-    "como o Daniel antes de responder."
-)
-INSTRUCAO_DEMAIS_INTERACOES = (
-    "Você já se apresentou anteriormente nesta conversa. NÃO se apresente "
-    "de novo (não repita seu nome, função ou saudação institucional) — "
-    "vá direto ao ponto e responda a pergunta."
-)
-
-SETORES_ESCALONAMENTO = {
-    "rh": "rh@dnelsom.com.br",
-    "ti": "ti@dnelsom.com.br",
-    "juridico": "juridico@dnelsom.com.br",
-    "comercial": "comercial@dnelsom.com.br",
-    "atendimento": "atendimento@dnelsom.com.br",
-    "financeiro": "financeiro@dnelsom.com.br",
-}
+FIRST_INTERACTION = "Esta é a primeira interação: pode se apresentar brevemente antes da resposta."
+NEXT_INTERACTIONS = "Você já se apresentou. Não repita saudação institucional; responda direto."
 
 
-def _montar_contexto(trechos: list[dict]) -> str:
-    if not trechos:
-        return "Nenhum trecho relevante foi encontrado na base de conhecimento."
-
-    partes = []
-    for t in trechos:
-        partes.append(f"[Fonte: {t['fonte']} | Setor: {t['setor']}]\n{t['texto']}")
-
-    return "\n\n---\n\n".join(partes)
+def _configure_model():
+    if not settings.google_api_key:
+        raise EnvironmentError("GOOGLE_API_KEY não configurada. Verifique o arquivo .env.")
+    genai.configure(api_key=settings.google_api_key)
+    return genai.GenerativeModel(settings.chat_model)
 
 
-def ask(pergunta: str, n_results: int = 4, primeira_interacao: bool = False) -> dict:
-    """
-    Executa o fluxo completo de RAG: busca + geração de resposta.
+def _build_context(passages: list[dict]) -> str:
+    parts = []
+    for passage in passages:
+        parts.append(
+            f"[Fonte: {passage['fonte']} | Setor: {passage['setor']} | "
+            f"Distância: {passage.get('distancia', 'n/a')}]\n{passage['texto']}"
+        )
+    return "\n\n---\n\n".join(parts)
 
-    Args:
-        pergunta: pergunta do usuário
-        n_results: quantos trechos buscar na base vetorial
-        primeira_interacao: se True, o Daniel pode se apresentar. Se False,
-            ele é instruído a não repetir a apresentação institucional.
 
-    Returns:
-        dict com "resposta" (str) e "fontes" (list de nomes de arquivo únicos)
-    """
-    trechos = vector_query(pergunta, n_results=n_results)
-    contexto = _montar_contexto(trechos)
+def ask(question: str, first_interaction: bool = False) -> dict:
+    try:
+        passages = vector_query(question)
+    except Exception as exc:
+        if is_quota_error(exc):
+            return {
+                "resposta": build_quota_message(exc),
+                "fontes": [],
+                "encaminhado": False,
+                "quota_exceeded": True,
+            }
+        raise
 
-    instrucao_apresentacao = (
-        INSTRUCAO_PRIMEIRA_INTERACAO if primeira_interacao else INSTRUCAO_DEMAIS_INTERACOES
-    )
-    system_prompt = SYSTEM_PROMPT.format(instrucao_apresentacao=instrucao_apresentacao)
+    if not has_relevant_context(passages):
+        return {
+            "resposta": build_escalation_message(question),
+            "fontes": [],
+            "encaminhado": True,
+        }
 
-    prompt_completo = f"""{system_prompt}
+    presentation_instruction = FIRST_INTERACTION if first_interaction else NEXT_INTERACTIONS
+    prompt = SYSTEM_PROMPT.format(presentation_instruction=presentation_instruction)
+    prompt += f"""
 
-CONTEXTO RECUPERADO DA BASE DE CONHECIMENTO:
-{contexto}
+CONTEXTO RECUPERADO:
+{_build_context(passages)}
 
 PERGUNTA DO USUÁRIO:
-{pergunta}
+{question}
 
-Responda seguindo estritamente as regras acima."""
+Responda seguindo estritamente as regras acima.
+"""
 
-    model = genai.GenerativeModel(MODEL_NAME)
-    resposta = model.generate_content(prompt_completo)
+    sources = sorted({passage["fonte"] for passage in passages})
+    model = _configure_model()
 
-    fontes_unicas = sorted({t["fonte"] for t in trechos}) if trechos else []
+    try:
+        response = model.generate_content(prompt)
+    except Exception as exc:
+        if is_quota_error(exc):
+            return {
+                "resposta": build_quota_message(exc),
+                "fontes": sources,
+                "encaminhado": False,
+                "quota_exceeded": True,
+            }
+        raise
 
     return {
-        "resposta": resposta.text,
-        "fontes": fontes_unicas,
+        "resposta": response.text,
+        "fontes": sources,
+        "encaminhado": False,
     }
-
-
-def sugerir_escalonamento(setor: str) -> str:
-    """Retorna o e-mail de contato do setor, para uso quando o Daniel não sabe a resposta."""
-    setor = setor.lower().strip()
-    email = SETORES_ESCALONAMENTO.get(setor)
-    if email:
-        return f"Recomendo entrar em contato com o setor de {setor.upper()} pelo e-mail {email}."
-    return "Recomendo procurar o setor responsável internamente para mais informações."
