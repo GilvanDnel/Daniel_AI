@@ -85,3 +85,25 @@ streamlit run src/app.py
 ## Status
 
 🚧 Em desenvolvimento — Challenge Final Alura
+
+## Troubleshooting
+
+### Erro: `RuntimeError: unsupported version of sqlite3` (Windows)
+
+O ChromaDB exige SQLite >= 3.35.0, e o Python no Windows costuma vir com uma
+versão mais antiga. Para corrigir:
+
+1. Rode em um terminal Python: `import sys; print(sys.executable)` — isso mostra
+   o caminho da sua instalação do Python (algo como
+   `C:\Users\SEU_USUARIO\AppData\Local\Programs\Python\Python39\`).
+2. Baixe a versão mais recente do SQLite para Windows em
+   [sqlite.org/download.html](https://www.sqlite.org/download.html)
+   (procure por **sqlite-dll-win64-x64-*.zip**, ou win32 se seu Python for 32 bits).
+3. Extraia o zip e copie o arquivo `sqlite3.dll`.
+4. Cole esse arquivo dentro da pasta `DLLs` da sua instalação do Python
+   (ex: `...\Python39\DLLs\sqlite3.dll`), substituindo o arquivo existente.
+5. Feche e reabra o terminal (e o venv), depois rode `streamlit run src/app.py`
+   novamente.
+
+Isso não afeta o deploy futuro na Oracle Cloud (Linux), que usa uma correção
+diferente já preparada no `requirements.txt`.
