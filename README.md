@@ -4,8 +4,8 @@ Assistente corporativo inteligente da **DNEL SOM Serviços Inteligentes**, desen
 
 > Daniel não é um chatbot genérico. Ele é uma camada inteligente de acesso ao conhecimento autorizado da empresa — responde com base em documentos internos reais, nunca inventa informação, e encaminha para o setor certo quando não encontra a resposta.
 
-🔗 **Aplicação rodando ao vivo na Oracle Cloud (OCI):**  
-[http://163.176.65.156:8501](http://163.176.65.156:8501)
+👤 **Desenvolvido por:** [Gilvan Silva](https://github.com/GilvanDnel)  
+🔗 **Aplicação rodando ao vivo na Oracle Cloud (OCI):** [http://163.176.65.156:8501](http://163.176.65.156:8501)
 
 ---
 
@@ -29,18 +29,12 @@ Para um detalhamento aprofundado sobre a arquitetura de software, governança do
 
 📖 **[Relatório Técnico de Engenharia, Governança e Arquitetura RAG](docs/relatorio_tecnico_completo.md)**
 
-### Destaques de Engenharia e Governança:
-- **Desmembramento Documental (*Sharding*):** Fatiamento em 10 arquivos Markdown (`.md`) especializados em 7 setores operacionais para redução de consumo de tokens e aumento da precisão vetorial.
-- **Tratamento de Rate Limit (HTTP 429):** Algoritmo de retentativa automática com espera exponencial (*Exponential Backoff*) na API de Embeddings do Gemini.
-- **Governança LGPD:** Diretrizes de proteção de dados de clientes e protocolos de descarte (*Wipe / Format*) em equipamentos deixados em assistência técnica.
-- **Segurança Lógica (Nível L5):** Princípio de privilégio mínimo e isolamento contra engenharia de prompt (*Prompt Injection* e *Antijailbreak*).
-
 ---
 
 ## Exemplos de perguntas e respostas
 
 **Pergunta:** "Posso fracionar minhas férias em quantos períodos?"  
-**Resposta:** _De acordo com a **Política de Férias**, as férias podem ser fracionadas em até 3 períodos, sendo que um deles não pode ser inferior a 14 dias corridos, e os demais não podem ser inferiores a 5 dias corridos cada._  
+**Resposta:** _De acordo com a **Política de Férias**, as férias podem ser fracionadas em até 3 períodos, sendo que um deles não pode ser inferior a 14 dias corridos, e os demais não me podem ser inferiores a 5 dias corridos cada._  
 📄 **Fonte consultada:** `Política de Férias`
 
 **Pergunta:** "Quais são os direitos do titular de dados segundo a LGPD?"  
@@ -115,7 +109,7 @@ Daniel_AI/
 ## Como executar localmente
 
 ```bash
-git clone https://github.com/SEU_USUARIO/Daniel_AI.git
+git clone https://github.com/GilvanDnel/Daniel_AI.git
 cd Daniel_AI
 
 python -m venv venv
@@ -130,13 +124,9 @@ python -m src.core.reindex     # indexa os documentos de company_docs/
 streamlit run src/app.py
 ```
 
-Acesse em `http://localhost:8501`.
-
 ---
 
 ## Executando os Testes Automatizados
-
-Para validar o funcionamento de todos os módulos (RAG, Admin, Analytics, Exporters, Formatação de Fontes):
 
 ```bash
 python -m unittest discover tests
@@ -146,7 +136,7 @@ python -m unittest discover tests
 
 ## Deploy (OCI Compute)
 
-A aplicação está hospedada em uma instância **Always Free** da Oracle Cloud (Ubuntu 24.04), rodando como serviço `systemd` (reinício automático em caso de falha, e inicialização automática com a máquina):
+A aplicação está hospedada em uma instância **Always Free** da Oracle Cloud (Ubuntu 24.04), rodando como serviço `systemd`:
 
 ```bash
 sudo systemctl status daniel     # verificar status
@@ -166,3 +156,22 @@ sudo systemctl restart daniel    # reiniciar após atualizar o código
 ✅ Interface responsiva Mobile-First refinada  
 ✅ Documentação Técnica e Governança LGPD compilada em `docs/`  
 ✅ Deploy ao vivo na OCI  
+
+---
+
+## 👨‍💻 Autor e Desenvolvedor
+
+**Gilvan Silva**  
+*Desenvolvedor & Engenheiro de Software em Formação*
+
+🎓 **Formação e Especializações:**
+- **Análise e Desenvolvimento de Sistemas**
+- **Web Academy** — Instituto de Computação da Universidade Federal do Amazonas (IComp / UFAM)
+- **Hyperautomation, RPA & Machine Learning** — Instituto Federal do Amazonas (IFAM)
+- **Técnico em Manutenção** — Centro de Educação Tecnológica do Amazonas (CETAM)
+- **Oracle NEXT Education (ONE)** — Alura + Oracle
+
+🚀 **Áreas de Interesse:** Inteligência Artificial, Engenharia de Prompt, Arquiteturas RAG, Automação Inteligente e Desenvolvimento Web.  
+🤝 *Aberto a novas conexões, trocas de conhecimento e oportunidades de aprendizado e colaboração!*
+
+🔗 **GitHub:** [@GilvanDnel](https://github.com/GilvanDnel)

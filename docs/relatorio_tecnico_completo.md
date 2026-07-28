@@ -1,9 +1,11 @@
 # RELATÓRIO TÉCNICO DE ENGENHARIA, GOVERNANÇA E ARQUITETURA DE RAG
 ## Projeto: Daniel AI — Assistente Corporativo Inteligente
+**Autor / Engenheiro Responsável:** Gilvan Silva (Análise e Desenvolvimento • UFAM / IFAM / Oracle ONE)  
 **Empresa:** DNEL SOM Serviços Inteligentes  
 **Data de Emissão:** 27 de Julho de 2026  
 **Versão do Sistema:** v1.0 Enterprise  
 **Status do Deploy:** Rodando ao vivo na Oracle Cloud Infrastructure (OCI Compute) — `http://163.176.65.156:8501`
+
 
 ---
 
