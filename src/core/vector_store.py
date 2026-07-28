@@ -26,6 +26,10 @@ CHUNK_OVERLAP = 150
 SUPPORTED_DOC_EXTENSIONS = {".pdf", ".docx", ".pptx", ".md", ".txt"}
 
 
+import time
+from src.core.errors import extract_retry_seconds, is_quota_error
+
+
 class GeminiEmbeddingFunction(EmbeddingFunction):
     """Embedding function using Gemini directly."""
 
@@ -36,17 +40,27 @@ class GeminiEmbeddingFunction(EmbeddingFunction):
     def __call__(self, input: Documents) -> Embeddings:
         embeddings = []
         for text in input:
-            result = genai.embed_content(
-                model=settings.embedding_model,
-                content=text,
-                task_type=self.task_type,
-            )
-            embeddings.append(result["embedding"])
+            for attempt in range(5):
+                try:
+                    result = genai.embed_content(
+                        model=settings.embedding_model,
+                        content=text,
+                        task_type=self.task_type,
+                    )
+                    embeddings.append(result["embedding"])
+                    break
+                except Exception as exc:
+                    if is_quota_error(exc) and attempt < 4:
+                        wait_sec = extract_retry_seconds(exc) or (2 ** attempt * 5)
+                        time.sleep(min(wait_sec + 2, 35))
+                    else:
+                        raise
         return embeddings
 
     @staticmethod
     def name() -> str:
         return "gemini_embedding_function"
+
 
 
 def _require_api_key() -> str:
