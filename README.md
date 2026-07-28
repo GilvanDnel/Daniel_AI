@@ -4,7 +4,7 @@ Assistente corporativo inteligente da **DNEL SOM Serviços Inteligentes**, desen
 
 > Daniel não é um chatbot genérico. Ele é uma camada inteligente de acesso ao conhecimento autorizado da empresa — responde com base em documentos internos reais, nunca inventa informação, e encaminha para o setor certo quando não encontra a resposta.
 
-🔗 **Aplicação rodando ao vivo na Oracle Cloud (OCI):**
+🔗 **Aplicação rodando ao vivo na Oracle Cloud (OCI):**  
 [http://163.176.65.156:8501](http://163.176.65.156:8501)
 
 ---
@@ -20,6 +20,20 @@ Assistente corporativo inteligente da **DNEL SOM Serviços Inteligentes**, desen
 - 🔀 **Escalonamento:** quando não encontra a resposta na base, encaminha o usuário para o e-mail do setor corporativo responsável.
 - 🔑 **Painel Administrativo Completo:** área autenticada (HMAC) com controle de sessão (Logout), upload de documentos por setor, exclusão de arquivos, reindexação da base e **Dashboard de Métricas e Saúde do Sistema**.
 - 📱 **Interface Responsiva Mobile-First:** adaptada para navegação em celulares, tablets e computadores.
+
+---
+
+## 📄 Documentação Técnica Avançada & Governança
+
+Para um detalhamento aprofundado sobre a arquitetura de software, governança documental, LGPD e runbooks de produção, consulte o relatório completo na pasta `docs/`:
+
+📖 **[Relatório Técnico de Engenharia, Governança e Arquitetura RAG](docs/relatorio_tecnico_completo.md)**
+
+### Destaques de Engenharia e Governança:
+- **Desmembramento Documental (*Sharding*):** Fatiamento em 10 arquivos Markdown (`.md`) especializados em 7 setores operacionais para redução de consumo de tokens e aumento da precisão vetorial.
+- **Tratamento de Rate Limit (HTTP 429):** Algoritmo de retentativa automática com espera exponencial (*Exponential Backoff*) na API de Embeddings do Gemini.
+- **Governança LGPD:** Diretrizes de proteção de dados de clientes e protocolos de descarte (*Wipe / Format*) em equipamentos deixados em assistência técnica.
+- **Segurança Lógica (Nível L5):** Princípio de privilégio mínimo e isolamento contra engenharia de prompt (*Prompt Injection* e *Antijailbreak*).
 
 ---
 
@@ -80,7 +94,7 @@ Daniel_AI/
 ├── company_docs/          # Base de conhecimento corporativa organizada por setor
 │   ├── atendimento/ comercial/ compliance/ financeiro/ juridico/ rh/ ti/
 ├── datasets/               # Datasets de exemplo para testes de Analytics
-├── docs/                    # Documentação formal do projeto
+├── docs/                    # Documentação formal e relatório técnico do projeto
 ├── src/
 │   ├── admin/               # Autenticação HMAC e gestão de documentos pelo Admin
 │   ├── analytics/           # Análise de planilhas (data_analyzer.py)
@@ -150,4 +164,5 @@ sudo systemctl restart daniel    # reiniciar após atualizar o código
 ✅ Acessibilidade com narração de áudio por voz (TTS)  
 ✅ Exportação do histórico da conversa em PDF e TXT  
 ✅ Interface responsiva Mobile-First refinada  
+✅ Documentação Técnica e Governança LGPD compilada em `docs/`  
 ✅ Deploy ao vivo na OCI  
