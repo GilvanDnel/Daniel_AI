@@ -38,7 +38,7 @@ def _render_sources_badges(sources: list[str]) -> None:
     for src_name in clean_sources:
         safe_name = html.escape(src_name)
         badges_html.append(
-            f'<span class="source-badge">📄 {safe_name}</span>'
+            f'<span class="source-badge">{safe_name}</span>'
         )
 
     html_block = f"""
@@ -73,7 +73,7 @@ def _render_audio_tts_button(text: str) -> None:
             font-weight: 600;
             cursor: pointer;
         ">
-            🔊 Ouvir Resposta
+            Ouvir Resposta
         </button>
     </div>
     """
@@ -86,13 +86,13 @@ def render_suggested_questions(questions: list[str], key_prefix: str) -> str | N
         return None
 
     st.markdown(
-        "<p style='font-size: 0.85rem; font-weight: 600; opacity: 0.85; margin-top: 10px; margin-bottom: 4px;'>💡 Perguntas Relacionadas:</p>",
+        "<p style='font-size: 0.85rem; font-weight: 600; opacity: 0.85; margin-top: 10px; margin-bottom: 4px;'>Perguntas Relacionadas:</p>",
         unsafe_allow_html=True,
     )
     clicked_question = None
     cols = st.columns(len(questions))
     for idx, (col, q_text) in enumerate(zip(cols, questions)):
-        if col.button(f"👉 {q_text}", key=f"{key_prefix}_sug_{idx}", use_container_width=True):
+        if col.button(q_text, key=f"{key_prefix}_sug_{idx}", use_container_width=True):
             clicked_question = q_text
     return clicked_question
 
@@ -102,17 +102,17 @@ def render_chat_export_buttons(messages: list[dict]) -> None:
     if len(messages) <= 1:
         return
 
-    with st.expander("📥 Baixar Histórico da Conversa", expanded=False):
+    with st.expander("Baixar Histórico da Conversa", expanded=False):
         col1, col2 = st.columns(2)
         col1.download_button(
-            "📄 Baixar Conversa em PDF",
+            "Baixar Conversa em PDF",
             export_chat_history_pdf(messages),
             "daniel_historico_conversa.pdf",
             "application/pdf",
             use_container_width=True,
         )
         col2.download_button(
-            "📝 Baixar Conversa em TXT",
+            "Baixar Conversa em TXT",
             export_chat_history_txt(messages),
             "daniel_historico_conversa.txt",
             "text/plain",
@@ -183,7 +183,7 @@ def _render_analytics_panel(analysis, key_prefix: str) -> None:
 
 def render_history(messages: list[dict]) -> None:
     for index, message in enumerate(messages):
-        with st.chat_message(message["role"]):
+        with st.chat_message(message["role"], avatar=None):
             result = message.get("result")
             if result is not None:
                 render_result(result, key_prefix=f"history_{index}")

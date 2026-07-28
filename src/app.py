@@ -32,14 +32,14 @@ GREETING_MESSAGE = (
 
 # 8 Category Cards covering 100% of corporate sectors & data analysis
 CATEGORY_OPTIONS = [
-    ("👥 Recursos Humanos", "Quais são as políticas de férias e banco de horas da empresa?"),
-    ("💻 TI & Acessos", "Quais são as regras de acesso, senhas e segurança em TI?"),
-    ("⚖️ Jurídico & Contratos", "Quais são as orientações sobre contratos e normas jurídicas?"),
-    ("💼 Comercial & Vendas", "Como funciona a política comercial e diretrizes de vendas?"),
-    ("🎧 Atendimento ao Cliente", "Como funciona o atendimento ao cliente e políticas de suporte?"),
-    ("🛡️ Compliance & Ética", "Quais são os princípios do código de conduta e compliance?"),
-    ("💰 Financeiro & Reembolso", "Quais são as regras de reembolso de despesas e rotinas financeiras?"),
-    ("📊 Análise de Planilhas", "Como faço para você analisar uma planilha CSV ou Excel que eu enviar?"),
+    ("Recursos Humanos", "Quais são as políticas de férias e banco de horas da empresa?"),
+    ("TI & Acessos", "Quais são as regras de acesso, senhas e segurança em TI?"),
+    ("Jurídico & Contratos", "Quais são as orientações sobre contratos e normas jurídicas?"),
+    ("Comercial & Vendas", "Como funciona a política comercial e diretrizes de vendas?"),
+    ("Atendimento ao Cliente", "Como funciona o atendimento ao cliente e políticas de suporte?"),
+    ("Compliance & Ética", "Quais são os princípios do código de conduta e compliance?"),
+    ("Financeiro & Reembolso", "Quais são as regras de reembolso de despesas e rotinas financeiras?"),
+    ("Análise de Planilhas", "Como faço para você analisar uma planilha CSV ou Excel que eu enviar?"),
 ]
 
 
@@ -61,7 +61,6 @@ def _init_state() -> None:
         st.session_state.db_initialized = True
 
 
-
 def reset_chat() -> None:
     """Clear chat messages and reset conversation state."""
     st.session_state.messages = [{"role": "assistant", "content": GREETING_MESSAGE}]
@@ -72,7 +71,7 @@ def reset_chat() -> None:
 
 def _render_category_buttons():
     """Render executive category cards covering 100% of corporate sectors (mobile-responsive)."""
-    st.markdown("#### 📌 Áreas de Conhecimento")
+    st.markdown("#### Áreas de Conhecimento")
     selected_question = None
 
     row1 = st.columns(4)
@@ -146,7 +145,6 @@ def _handle_message_safely(question: str, uploaded_file):
 def main() -> None:
     st.set_page_config(
         page_title="Daniel AI - Assistente Corporativo",
-        page_icon="🏢",
         layout="centered",
     )
     load_custom_css()
@@ -155,11 +153,11 @@ def main() -> None:
 
     header_col1, header_col2 = st.columns([4, 1])
     with header_col1:
-        st.title("🏢 Daniel AI")
+        st.title("Daniel AI")
         st.caption("Assistente Corporativo Inteligente • DNEL SOM Serviços Inteligentes")
     with header_col2:
         st.write("")
-        if st.button("➕ Nova Conversa", help="Reiniciar conversa", use_container_width=True):
+        if st.button("Nova Conversa", help="Reiniciar conversa", use_container_width=True):
             reset_chat()
             st.rerun()
 
@@ -193,14 +191,26 @@ def main() -> None:
         question = button_question
         uploaded_file = None
 
+    # Render Developer Footer
+    st.markdown(
+        """
+        <div style="margin-top: 50px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); text-align: center; font-size: 0.85rem; opacity: 0.85;">
+            Daniel AI &bull; Desenvolvido por <strong>Gilvan Silva</strong> &nbsp;|&nbsp; 
+            <a href="https://github.com/GilvanDnel" target="_blank" style="color: #60A5FA; text-decoration: none; font-weight: 500;">GitHub</a> &nbsp;&bull;&nbsp; 
+            <a href="https://www.linkedin.com/in/gilvan-silva-b52637114/" target="_blank" style="color: #60A5FA; text-decoration: none; font-weight: 500;">LinkedIn</a>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
     if not question:
         return
 
     st.session_state.messages.append({"role": "user", "content": question})
-    with st.chat_message("user"):
+    with st.chat_message("user", avatar=None):
         st.markdown(question)
 
-    with st.chat_message("assistant"):
+    with st.chat_message("assistant", avatar=None):
         with st.spinner("Analisando consulta nas fontes oficiais..."):
             result = _handle_message_safely(question, uploaded_file)
             st.session_state.first_question_done = True

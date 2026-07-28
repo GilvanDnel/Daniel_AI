@@ -24,7 +24,7 @@ def render_sidebar() -> None:
     st.sidebar.divider()
 
     # --- 1. Filtro de Busca por Setor ---
-    st.sidebar.markdown("### 🔍 Filtro de Busca")
+    st.sidebar.markdown("### Filtro de Busca")
     sectors = get_available_sectors()
     sector_options = ["Todos os setores"] + [s.upper() for s in sectors]
 
@@ -44,7 +44,7 @@ def render_sidebar() -> None:
     st.sidebar.divider()
 
     # --- 2. Painel Admin ---
-    with st.sidebar.expander("🔑 Painel Admin", expanded=st.session_state.get("admin_authenticated", False)):
+    with st.sidebar.expander("Painel Admin", expanded=st.session_state.get("admin_authenticated", False)):
         if not st.session_state.get("admin_authenticated"):
             username = st.text_input("Usuário admin", key="admin_user_input")
             password = st.text_input("Senha", type="password", key="admin_pass_input")
@@ -56,15 +56,15 @@ def render_sidebar() -> None:
                 else:
                     st.error("Credenciais inválidas.")
         else:
-            st.success("🟢 Sessão Admin Ativa")
-            if st.button("🚪 Sair / Encerrar Sessão", use_container_width=True):
+            st.success("Sessão Admin Ativa")
+            if st.button("Sair / Encerrar Sessão", use_container_width=True):
                 st.session_state.admin_authenticated = False
                 st.rerun()
 
             st.divider()
 
             # --- Dashboard de Métricas da Base ---
-            st.markdown("### 📊 Saúde & Métricas da Base")
+            st.markdown("### Saúde & Métricas da Base")
             try:
                 stats = get_vector_store_stats()
                 st.metric("Total de Chunks Indexados", stats["total_chunks"])
@@ -79,7 +79,7 @@ def render_sidebar() -> None:
             st.divider()
 
             # --- Upload de novo documento ---
-            st.markdown("### 📤 Enviar Documento")
+            st.markdown("### Enviar Documento")
             selected_sector = st.selectbox("Setor do documento", sectors, key="upload_sector_select")
             uploaded_doc = st.file_uploader(
                 "Escolha o arquivo",
@@ -112,7 +112,7 @@ def render_sidebar() -> None:
             st.divider()
 
             # --- Listar e excluir documentos ---
-            st.markdown("### 📂 Documentos da Empresa")
+            st.markdown("### Documentos da Empresa")
             doc_map = list_company_documents()
             total_docs = sum(len(files) for files in doc_map.values())
 
@@ -121,11 +121,11 @@ def render_sidebar() -> None:
             else:
                 for sector, files in doc_map.items():
                     if files:
-                        with st.expander(f"📁 {sector.upper()} ({len(files)})", expanded=False):
+                        with st.expander(f"{sector.upper()} ({len(files)})", expanded=False):
                             for fname in files:
                                 col1, col2 = st.columns([3, 1])
-                                col1.write(f"📄 `{fname}`")
-                                if col2.button("🗑️", key=f"del_{sector}_{fname}", help=f"Excluir {fname}"):
+                                col1.write(f"`{fname}`")
+                                if col2.button("Excluir", key=f"del_{sector}_{fname}", help=f"Excluir {fname}"):
                                     if delete_admin_document(sector, fname):
                                         st.success(f"Removido: `{fname}`")
                                         if auto_reindex:
@@ -137,7 +137,7 @@ def render_sidebar() -> None:
             st.divider()
 
             # --- Reindexação Manual ---
-            st.markdown("### 🔄 Manutenção")
+            st.markdown("### Manutenção")
             st.caption("A reindexação chama embeddings da Gemini API e pode consumir cota.")
             if st.button("Reindexar Base Inteira", use_container_width=True):
                 try:
@@ -153,3 +153,4 @@ def render_sidebar() -> None:
                         st.error(build_quota_message(exc))
                     else:
                         st.error(f"Erro ao reindexar: {exc}")
+
