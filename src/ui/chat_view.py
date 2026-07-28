@@ -1,17 +1,22 @@
-"""Chat UI rendering helpers."""
+"""Chat UI rendering helpers with TTS Audio, Smart Suggestions, and Chat Export."""
 
 from __future__ import annotations
+
+import html
 
 import streamlit as st
 
 from src.analytics.data_analyzer import build_bar_chart, build_time_series_chart
 from src.reports.exporters import (
+    export_chat_history_pdf,
+    export_chat_history_txt,
     export_dataframe_csv,
     export_dataframe_excel,
     export_summary_pdf,
     export_summary_pptx,
 )
 from src.services.chat_service import ChatResult
+from src.utils.source_formatter import format_source_name
 
 
 def _format_number(value, measure: str | None = None) -> str:
@@ -22,6 +27,97 @@ def _format_number(value, measure: str | None = None) -> str:
             return f"R$ {value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
         return f"{value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
     return str(value)
+
+
+def _render_sources_badges(sources: list[str]) -> None:
+    if not sources:
+        return
+
+    clean_sources = sorted(list({format_source_name(src) for src in sources}))
+    badges_html = []
+    for src_name in clean_sources:
+        safe_name = html.escape(src_name)
+        badges_html.append(
+            f'<span class="source-badge">📄 {safe_name}</span>'
+        )
+
+    html_block = f"""
+    <div style="margin-top: 14px; margin-bottom: 6px;">
+        <span style="font-size: 0.85rem; font-weight: 600; opacity: 0.85;">Fontes autorizadas consultadas:</span>
+        <div class="source-badge-container">
+            {"".join(badges_html)}
+        </div>
+    </div>
+    """
+    st.markdown(html_block, unsafe_allow_html=True)
+
+
+def _render_audio_tts_button(text: str) -> None:
+    """Render Web Speech API HTML button for instant text-to-speech narration."""
+    clean_text = text.replace("*", "").replace("#", "").replace("`", "").replace("\n", " ").replace("'", "\\'")
+    tts_html = f"""
+    <div style="margin-top: 6px; margin-bottom: 8px;">
+        <button onclick="
+            var synth = window.speechSynthesis;
+            if (synth.speaking) {{ synth.cancel(); return; }}
+            var msg = new SpeechSynthesisUtterance('{clean_text[:600]}');
+            msg.lang = 'pt-BR';
+            synth.speak(msg);
+        " style="
+            background-color: rgba(59, 130, 246, 0.1);
+            color: #3B82F6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 6px;
+            padding: 5px 12px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+        ">
+            🔊 Ouvir Resposta
+        </button>
+    </div>
+    """
+    st.components.v1.html(tts_html, height=42)
+
+
+def render_suggested_questions(questions: list[str], key_prefix: str) -> str | None:
+    """Render interactive follow-up question chips below assistant responses."""
+    if not questions:
+        return None
+
+    st.markdown(
+        "<p style='font-size: 0.85rem; font-weight: 600; opacity: 0.85; margin-top: 10px; margin-bottom: 4px;'>💡 Perguntas Relacionadas:</p>",
+        unsafe_allow_html=True,
+    )
+    clicked_question = None
+    cols = st.columns(len(questions))
+    for idx, (col, q_text) in enumerate(zip(cols, questions)):
+        if col.button(f"👉 {q_text}", key=f"{key_prefix}_sug_{idx}", use_container_width=True):
+            clicked_question = q_text
+    return clicked_question
+
+
+def render_chat_export_buttons(messages: list[dict]) -> None:
+    """Render chat transcript export options in PDF and TXT format."""
+    if len(messages) <= 1:
+        return
+
+    with st.expander("📥 Baixar Histórico da Conversa", expanded=False):
+        col1, col2 = st.columns(2)
+        col1.download_button(
+            "📄 Baixar Conversa em PDF",
+            export_chat_history_pdf(messages),
+            "daniel_historico_conversa.pdf",
+            "application/pdf",
+            use_container_width=True,
+        )
+        col2.download_button(
+            "📝 Baixar Conversa em TXT",
+            export_chat_history_txt(messages),
+            "daniel_historico_conversa.txt",
+            "text/plain",
+            use_container_width=True,
+        )
 
 
 def _render_analytics_panel(analysis, key_prefix: str) -> None:
@@ -54,7 +150,7 @@ def _render_analytics_panel(analysis, key_prefix: str) -> None:
         if figure is not None:
             st.plotly_chart(figure, use_container_width=True, key=f"{key_prefix}_ranking_{index}")
 
-    with st.expander("Baixar resultados", expanded=False):
+    with st.expander("Baixar relatórios da planilha", expanded=False):
         st.download_button(
             "CSV",
             export_dataframe_csv(analysis.dataframe),
@@ -96,13 +192,15 @@ def render_history(messages: list[dict]) -> None:
 
 
 def render_result(result: ChatResult, key_prefix: str = "current") -> str:
-    answer = result.answer
-    if result.sources:
-        answer += "\n\n---\n**Fontes consultadas:** " + ", ".join(result.sources)
+    st.markdown(result.answer)
 
-    st.markdown(answer)
+    if result.answer and not result.answer.startswith("Encontrei um erro"):
+        _render_audio_tts_button(result.answer)
+
+    if result.sources:
+        _render_sources_badges(result.sources)
 
     if result.mode == "analytics" and result.payload is not None:
         _render_analytics_panel(result.payload, key_prefix=key_prefix)
 
-    return answer
+    return result.answer

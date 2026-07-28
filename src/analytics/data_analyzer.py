@@ -28,10 +28,31 @@ class AnalysisResult:
 def load_dataset(file_obj, file_name: str) -> pd.DataFrame:
     """Load CSV or XLSX from a Streamlit upload or local path."""
     suffix = Path(file_name).suffix.lower()
-    if suffix == ".csv":
-        return pd.read_csv(file_obj)
     if suffix == ".xlsx":
         return pd.read_excel(file_obj)
+
+    if suffix == ".csv":
+        encodings = ["utf-8-sig", "utf-8", "latin-1", "cp1252"]
+        separators = [None, ",", ";", "\t"]
+
+        for encoding in encodings:
+            for sep in separators:
+                try:
+                    if hasattr(file_obj, "seek"):
+                        file_obj.seek(0)
+                    if sep is None:
+                        df = pd.read_csv(file_obj, encoding=encoding, sep=None, engine="python")
+                    else:
+                        df = pd.read_csv(file_obj, encoding=encoding, sep=sep)
+                    if len(df.columns) > 1 or len(df) <= 1:
+                        return df
+                except Exception:
+                    continue
+
+        if hasattr(file_obj, "seek"):
+            file_obj.seek(0)
+        return pd.read_csv(file_obj)
+
     raise ValueError(f"Formato não suportado para analytics: {suffix}")
 
 
@@ -74,7 +95,7 @@ def _find_date_column(df: pd.DataFrame) -> str | None:
             return column
         if pd.api.types.is_numeric_dtype(df[column]):
             continue
-        parsed = pd.to_datetime(df[column], errors="coerce")
+        parsed = pd.to_datetime(df[column], errors="coerce", dayfirst=True, format="mixed")
         if parsed.notna().mean() >= 0.7:
             return column
     return None
@@ -90,7 +111,7 @@ def _build_time_series(df: pd.DataFrame, date_column: str | None, measure: str |
     if not date_column or not measure:
         return None
     working = df.copy()
-    working[date_column] = pd.to_datetime(working[date_column], errors="coerce")
+    working[date_column] = pd.to_datetime(working[date_column], errors="coerce", dayfirst=True, format="mixed")
     working = working.dropna(subset=[date_column])
     if working.empty:
         return None
@@ -102,6 +123,7 @@ def _build_time_series(df: pd.DataFrame, date_column: str | None, measure: str |
         .reset_index()
         .sort_values("periodo")
     )
+
 
 
 def _build_insights(
@@ -296,7 +318,62 @@ def build_time_series_chart(time_series: pd.DataFrame | None):
 
 
 def build_management_followup_answer(question: str, analysis: AnalysisResult) -> str:
-    """Answer follow-up management questions using the last analysis."""
+    """Answer follow-up management questions using the last analysis and Gemini API."""
+    from src.config.settings import settings
+
+    if settings.google_api_key:
+        try:
+            import google.generativeai as genai
+
+            genai.configure(api_key=settings.google_api_key)
+            model = genai.GenerativeModel(settings.chat_model)
+
+            rankings_summary = []
+            for r_name, r_df in analysis.rankings.items():
+                rankings_summary.append(f"{r_name}:\n{r_df.head(5).to_string(index=False)}")
+            rankings_text = "\n\n".join(rankings_summary)
+
+            time_text = (
+                analysis.time_series.head(10).to_string(index=False)
+                if analysis.time_series is not None
+                else "Nenhuma série temporal disponível."
+            )
+
+            sample_rows = analysis.dataframe.head(10).to_string(index=False)
+
+            prompt = f"""Você é o Daniel, assistente corporativo inteligente da DNEL SOM.
+O usuário está fazendo uma pergunta de acompanhamento sobre uma planilha analisada anteriormente.
+
+RESUMO DA PLANILHA:
+- Linhas: {analysis.summary.get('linhas')} | Colunas: {analysis.summary.get('colunas')}
+- Medida Principal: {analysis.summary.get('medida_principal')}
+- Total Medida: {analysis.summary.get('total_medida_principal')}
+
+RANKINGS PRINCIPAIS:
+{rankings_text}
+
+EVOLUÇÃO TEMPORAL:
+{time_text}
+
+AMOSTRA DOS DADOS:
+{sample_rows}
+
+INSIGHTS ANTERIORES:
+{chr(10).join(analysis.insights)}
+
+PERGUNTA DE ACOMPANHAMENTO DO USUÁRIO:
+{question}
+
+Instruções:
+- Responda de forma direta, analítica e executiva com base nos dados apresentados.
+- Se a pergunta envolver valores, números ou destaques específicos da base, use os dados reais.
+- Mantenha tom profissional.
+"""
+            response = model.generate_content(prompt)
+            return response.text
+        except Exception:
+            pass
+
     lines = [
         "Com base na última análise carregada, eu olharia para três decisões práticas:",
         "",
@@ -310,6 +387,7 @@ def build_management_followup_answer(question: str, analysis: AnalysisResult) ->
             lines.append(f"- {insight}")
 
     return "\n".join(lines)
+
 
 
 def dataframe_to_excel_bytes(df: pd.DataFrame) -> bytes:

@@ -126,13 +126,17 @@ def add_documents_from_folder(folder_path: str | Path | None = None) -> dict[str
     return result
 
 
-def query(question: str, n_results: int | None = None) -> list[dict]:
+def query(question: str, n_results: int | None = None, sector_filter: str | None = None) -> list[dict]:
     collection = _get_collection()
-    result = collection.query(
-        query_texts=[question],
-        n_results=n_results or settings.rag_n_results,
-        include=["documents", "metadatas", "distances"],
-    )
+    query_params: dict[str, Any] = {
+        "query_texts": [question],
+        "n_results": n_results or settings.rag_n_results,
+        "include": ["documents", "metadatas", "distances"],
+    }
+    if sector_filter and sector_filter.strip() and sector_filter.lower() != "todos":
+        query_params["where"] = {"setor": sector_filter.lower().strip()}
+
+    result = collection.query(**query_params)
 
     documents = result.get("documents", [[]])[0]
     metadatas = result.get("metadatas", [[]])[0]
@@ -165,3 +169,29 @@ def rebuild_base() -> dict[str, int]:
     except Exception:
         pass
     return add_documents_from_folder()
+
+
+def get_vector_store_stats() -> dict[str, Any]:
+    """Return stats about the vector database and corporate documents."""
+    collection = _get_collection()
+    total_chunks = collection.count()
+
+    sector_counts: dict[str, int] = {}
+    if total_chunks > 0:
+        get_res = collection.get(include=["metadatas"])
+        metadatas = get_res.get("metadatas") or []
+        for meta in metadatas:
+            setor = meta.get("setor", "outros").lower()
+            sector_counts[setor] = sector_counts.get(setor, 0) + 1
+
+    db_path = settings.chroma_db_path
+    size_bytes = 0
+    if db_path.exists():
+        size_bytes = sum(f.stat().st_size for f in db_path.glob("**/*") if f.is_file())
+
+    return {
+        "total_chunks": total_chunks,
+        "sector_counts": sector_counts,
+        "db_size_mb": round(size_bytes / (1024 * 1024), 2),
+    }
+

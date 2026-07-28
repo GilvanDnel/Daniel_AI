@@ -1,7 +1,0 @@
-data,vendedor,produto,regiao,quantidade,valor_total
-2026-01-05,Ana Silva,Plano Premium,Norte,3,4500
-2026-01-08,Joao Souza,Plano Basico,Sul,5,2500
-2026-01-12,Maria Lima,Plano Premium,Sudeste,4,6000
-2026-02-03,Ana Silva,Plano Enterprise,Norte,2,9000
-2026-02-14,Carlos Rocha,Plano Premium,Centro-Oeste,3,4500
-2026-03-10,Maria Lima,Plano Enterprise,Sudeste,1,4500

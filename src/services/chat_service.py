@@ -9,12 +9,16 @@ from src.core.intents import greeting_response, is_greeting
 from src.core.router import route_request
 
 
+from dataclasses import dataclass, field
+
+
 @dataclass
 class ChatResult:
     mode: str
     answer: str
     sources: list[str]
     payload: object | None = None
+    suggested_questions: list[str] = field(default_factory=list)
 
 
 def _normalize(text: str) -> str:
@@ -71,6 +75,7 @@ def handle_message(
     uploaded_file=None,
     first_interaction: bool = False,
     last_analysis=None,
+    sector_filter: str | None = None,
 ) -> ChatResult:
     """Route a user message to the correct Daniel module."""
     file_name = getattr(uploaded_file, "name", None)
@@ -108,28 +113,26 @@ def handle_message(
         )
 
     if mode == "temporary_document" and uploaded_file is not None:
-        from src.services.document_service import summarize_temporary_document
+        from src.services.document_service import ask_temporary_document
         from src.services.upload_service import save_uploaded_file
 
         temporary_path = save_uploaded_file(uploaded_file)
-        preview = summarize_temporary_document(temporary_path)
+        answer_text = ask_temporary_document(temporary_path, question=question)
         return ChatResult(
             mode=mode,
-            answer=(
-                "Recebi e li o documento temporário. Ele não foi adicionado à base corporativa "
-                "permanente.\n\n"
-                f"Prévia extraída:\n\n{preview}"
-            ),
+            answer=answer_text,
             sources=[],
             payload=temporary_path,
         )
 
     from src.core.rag_engine import ask as ask_knowledge_base
 
-    result = ask_knowledge_base(question, first_interaction=first_interaction)
+    result = ask_knowledge_base(question, first_interaction=first_interaction, sector_filter=sector_filter)
     return ChatResult(
         mode="knowledge",
         answer=result["resposta"],
         sources=result.get("fontes", []),
         payload=result,
+        suggested_questions=result.get("suggested_questions", []),
     )
+

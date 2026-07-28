@@ -42,9 +42,33 @@ def _build_context(passages: list[dict]) -> str:
     return "\n\n---\n\n".join(parts)
 
 
-def ask(question: str, first_interaction: bool = False) -> dict:
+def _generate_suggested_questions(passages: list[dict]) -> list[str]:
+    sectors = {p.get("setor", "").lower() for p in passages}
+    suggestions = []
+    if "rh" in sectors:
+        suggestions.extend(["Como solicito o fracionamento de férias?", "Quais são as regras do banco de horas?"])
+    if "ti" in sectors:
+        suggestions.extend(["Como redefinir a minha senha de acesso?", "Quais os requisitos de segurança em TI?"])
+    if "juridico" in sectors:
+        suggestions.extend(["Quais os direitos do titular na LGPD?", "Como enviar um contrato para análise?"])
+    if "comercial" in sectors:
+        suggestions.extend(["Quais são as regras de comissões?", "Como funciona a política de descontos?"])
+    if "atendimento" in sectors:
+        suggestions.extend(["Como funciona a garantia de produtos?", "Quais são os prazos de devolução?"])
+    if "compliance" in sectors:
+        suggestions.extend(["Quais as diretrizes do código de conduta?", "Como relatar uma inconformidade?"])
+    if "financeiro" in sectors:
+        suggestions.extend(["Qual o prazo para reembolso de despesas?", "Quais os comprovantes necessários para prestação de contas?"])
+
+    if not suggestions:
+        suggestions = ["Quais são as políticas internas da empresa?", "Como entrar em contato com o setor responsável?"]
+
+    return list(dict.fromkeys(suggestions))[:2]
+
+
+def ask(question: str, first_interaction: bool = False, sector_filter: str | None = None) -> dict:
     try:
-        passages = vector_query(question)
+        passages = vector_query(question, sector_filter=sector_filter)
     except Exception as exc:
         if is_quota_error(exc):
             return {
@@ -52,6 +76,7 @@ def ask(question: str, first_interaction: bool = False) -> dict:
                 "fontes": [],
                 "encaminhado": False,
                 "quota_exceeded": True,
+                "suggested_questions": [],
             }
         raise
 
@@ -60,6 +85,7 @@ def ask(question: str, first_interaction: bool = False) -> dict:
             "resposta": build_escalation_message(question),
             "fontes": [],
             "encaminhado": True,
+            "suggested_questions": [],
         }
 
     presentation_instruction = FIRST_INTERACTION if first_interaction else NEXT_INTERACTIONS
@@ -87,6 +113,7 @@ Responda seguindo estritamente as regras acima.
                 "fontes": sources,
                 "encaminhado": False,
                 "quota_exceeded": True,
+                "suggested_questions": [],
             }
         raise
 
@@ -94,4 +121,6 @@ Responda seguindo estritamente as regras acima.
         "resposta": response.text,
         "fontes": sources,
         "encaminhado": False,
+        "suggested_questions": _generate_suggested_questions(passages),
     }
+
