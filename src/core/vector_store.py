@@ -212,3 +212,19 @@ def get_vector_store_stats() -> dict[str, Any]:
         "db_size_mb": round(size_bytes / (1024 * 1024), 2),
     }
 
+
+def ensure_vector_store_populated() -> int:
+    """Check if vector store is empty (e.g. fresh deploy on Streamlit Cloud).
+
+    If empty, automatically populate from company_docs folder.
+    """
+    try:
+        collection = _get_collection()
+        if collection.count() == 0:
+            added = add_documents_from_folder()
+            return sum(added.values())
+    except Exception as exc:
+        print(f"[VectorStore] Aviso ao verificar/indexar base: {exc}")
+    return 0
+
+

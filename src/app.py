@@ -10,6 +10,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 import streamlit as st
 
 from src.core.errors import build_quota_message, is_quota_error
+from src.core.vector_store import ensure_vector_store_populated
 from src.services.chat_service import ChatResult, handle_message
 from src.ui.chat_view import (
     render_chat_export_buttons,
@@ -55,6 +56,10 @@ def _init_state() -> None:
         st.session_state.last_analysis = None
     if "pending_suggested_question" not in st.session_state:
         st.session_state.pending_suggested_question = None
+    if "db_initialized" not in st.session_state:
+        ensure_vector_store_populated()
+        st.session_state.db_initialized = True
+
 
 
 def reset_chat() -> None:
