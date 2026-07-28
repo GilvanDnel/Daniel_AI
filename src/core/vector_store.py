@@ -147,8 +147,11 @@ def query(question: str, n_results: int | None = None, sector_filter: str | None
         "n_results": n_results or settings.rag_n_results,
         "include": ["documents", "metadatas", "distances"],
     }
-    if sector_filter and sector_filter.strip() and sector_filter.lower() != "todos":
-        query_params["where"] = {"setor": sector_filter.lower().strip()}
+    if sector_filter and sector_filter.strip():
+        clean_s = sector_filter.lower().strip()
+        if not clean_s.startswith("todos"):
+            query_params["where"] = {"setor": clean_s}
+
 
     result = collection.query(**query_params)
 
