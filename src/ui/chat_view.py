@@ -181,9 +181,12 @@ def _render_analytics_panel(analysis, key_prefix: str) -> None:
         )
 
 
+BLANK_AVATAR = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+
+
 def render_history(messages: list[dict]) -> None:
     for index, message in enumerate(messages):
-        with st.chat_message(message["role"], avatar=None):
+        with st.chat_message(message["role"], avatar=BLANK_AVATAR):
             result = message.get("result")
             if result is not None:
                 render_result(result, key_prefix=f"history_{index}")

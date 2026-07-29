@@ -203,14 +203,16 @@ def main() -> None:
         unsafe_allow_html=True,
     )
 
+    BLANK_AVATAR = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+
     if not question:
         return
 
     st.session_state.messages.append({"role": "user", "content": question})
-    with st.chat_message("user", avatar=None):
+    with st.chat_message("user", avatar=BLANK_AVATAR):
         st.markdown(question)
 
-    with st.chat_message("assistant", avatar=None):
+    with st.chat_message("assistant", avatar=BLANK_AVATAR):
         with st.spinner("Analisando consulta nas fontes oficiais..."):
             result = _handle_message_safely(question, uploaded_file)
             st.session_state.first_question_done = True
