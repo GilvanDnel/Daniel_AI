@@ -38,9 +38,10 @@ CATEGORY_OPTIONS = [
     ("Comercial & Vendas", "Como funciona a política comercial e diretrizes de vendas?"),
     ("Atendimento ao Cliente", "Como funciona o atendimento ao cliente e políticas de suporte?"),
     ("Compliance & Ética", "Quais são os princípios do código de conduta e compliance?"),
-    ("Financeiro & Reembolso", "Quais são as regras de reembolso de despesas e rotinas financeiras?"),
+    ("Financeiro", "Quais são as regras de reembolso de despesas e rotinas financeiras?"),
     ("Análise de Planilhas", "Como faço para você analisar uma planilha CSV ou Excel que eu enviar?"),
 ]
+
 
 
 def _init_state() -> None:
