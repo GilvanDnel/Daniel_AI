@@ -191,13 +191,13 @@ def main() -> None:
         question = button_question
         uploaded_file = None
 
-    # Render Developer Footer
+    # Render Fixed Footer at bottom of screen
     st.markdown(
         """
-        <div style="margin-top: 50px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); text-align: center; font-size: 0.85rem; opacity: 0.85;">
+        <div class="app-footer-fixed">
             Daniel AI &bull; Desenvolvido por <strong>Gilvan Silva</strong> &nbsp;|&nbsp; 
-            <a href="https://github.com/GilvanDnel" target="_blank" style="color: #60A5FA; text-decoration: none; font-weight: 500;">GitHub</a> &nbsp;&bull;&nbsp; 
-            <a href="https://www.linkedin.com/in/gilvan-silva-b52637114/" target="_blank" style="color: #60A5FA; text-decoration: none; font-weight: 500;">LinkedIn</a>
+            <a href="https://github.com/GilvanDnel" target="_blank">GitHub</a> &bull; 
+            <a href="https://www.linkedin.com/in/gilvan-silva-b52637114/" target="_blank">LinkedIn</a>
         </div>
         """,
         unsafe_allow_html=True,
