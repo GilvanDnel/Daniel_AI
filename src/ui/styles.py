@@ -6,14 +6,25 @@ import streamlit as st
 
 CUSTOM_CSS = """
 <style>
-/* 1. Global Page Background & Theme Enforcement */
+/* 1. REMOVE ALL CHAT AVATARS (Hides robot and user emoji icons completely) */
+[data-testid="stChatMessageAvatar"],
+div[data-testid="stChatMessage"] [data-testid="stChatMessageAvatar"],
+.stChatMessageAvatar {
+    display: none !important;
+}
+
+div[data-testid="stChatMessage"] {
+    padding-left: 0 !important;
+    margin-bottom: 12px !important;
+}
+
+/* 2. BASE & DARK THEME STYLING (Default & Dark Mode) */
 html, body, .stApp {
     background-color: #0B0E14 !important;
     color: #F1F5F9 !important;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
 }
 
-/* 2. Framed Window Container Card (Visível em qualquer tema com borda e sombra) */
 .main .block-container {
     max-width: 860px !important;
     background-color: #141A26 !important;
@@ -25,7 +36,6 @@ html, body, .stApp {
     margin-bottom: 4.5rem !important;
 }
 
-/* Ensure text inside the framed card is always bright and legible */
 .main .block-container p, 
 .main .block-container span, 
 .main .block-container div,
@@ -34,7 +44,6 @@ html, body, .stApp {
     color: #E2E8F0 !important;
 }
 
-/* Headers */
 h1, h2, h3, h4, h5, h6 {
     color: #F8FAFC !important;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
@@ -46,7 +55,6 @@ h1, h2, h3, h4, h5, h6 {
     color: #94A3B8 !important;
 }
 
-/* 3. Uniform Category Buttons (Padronização exata de altura para todos os botões) */
 div[data-testid="column"] button {
     height: 52px !important;
     min-height: 52px !important;
@@ -75,7 +83,6 @@ div[data-testid="column"] button:hover {
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
 }
 
-/* Clean Corporate Badges for Citations */
 .source-badge-container {
     display: flex;
     flex-wrap: wrap;
@@ -96,7 +103,6 @@ div[data-testid="column"] button:hover {
     font-weight: 600;
 }
 
-/* 4. Chat Input Container & Fixed Footer Layout */
 div[data-testid="stBottom"] {
     bottom: 32px !important;
     background-color: transparent !important;
@@ -108,7 +114,7 @@ div[data-testid="stBottom"] {
     left: 0;
     right: 0;
     height: 32px;
-    background: #0B0E14;
+    background-color: #0B0E14;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     align-items: center;
@@ -125,8 +131,67 @@ div[data-testid="stBottom"] {
     margin: 0 4px;
 }
 
-.app-footer-fixed a:hover {
-    text-decoration: underline;
+/* 3. LIGHT THEME OVERRIDES (Garante 100% de legibilidade perfeita no modo Claro) */
+[data-theme="light"] .stApp, 
+body[data-theme="light"] .stApp {
+    background-color: #F1F5F9 !important;
+    color: #0F172A !important;
+}
+
+[data-theme="light"] .main .block-container {
+    background-color: #FFFFFF !important;
+    border: 1px solid #CBD5E1 !important;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme="light"] .main .block-container p, 
+[data-theme="light"] .main .block-container span, 
+[data-theme="light"] .main .block-container div,
+[data-theme="light"] .main .block-container li,
+[data-theme="light"] .main .block-container label {
+    color: #1E293B !important;
+}
+
+[data-theme="light"] h1, 
+[data-theme="light"] h2, 
+[data-theme="light"] h3, 
+[data-theme="light"] h4, 
+[data-theme="light"] h5, 
+[data-theme="light"] h6 {
+    color: #0F172A !important;
+}
+
+[data-theme="light"] .stCaption, 
+[data-theme="light"] caption {
+    color: #64748B !important;
+}
+
+[data-theme="light"] div[data-testid="column"] button {
+    background-color: #F8FAFC !important;
+    color: #0F172A !important;
+    border: 1px solid #CBD5E1 !important;
+}
+
+[data-theme="light"] div[data-testid="column"] button:hover {
+    background-color: #2563EB !important;
+    color: #FFFFFF !important;
+    border-color: #2563EB !important;
+}
+
+[data-theme="light"] .source-badge {
+    background-color: #EFF6FF !important;
+    color: #1D4ED8 !important;
+    border: 1px solid #93C5FD !important;
+}
+
+[data-theme="light"] .app-footer-fixed {
+    background-color: #F8FAFC !important;
+    border-top: 1px solid #E2E8F0 !important;
+    color: #64748B !important;
+}
+
+[data-theme="light"] .app-footer-fixed a {
+    color: #2563EB !important;
 }
 
 /* Mobile Responsiveness Rules */
@@ -159,5 +224,6 @@ div[data-testid="stBottom"] {
 def load_custom_css() -> None:
     """Inject custom executive & mobile responsive CSS rules."""
     st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+
 
 
