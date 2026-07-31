@@ -123,6 +123,7 @@ WantedBy=multi-user.target
 ```
 
 #### 2. Comandos Operacionais no Servidor Ubuntu:
+
 ```bash
 # Entrar no diretório e ativar o ambiente virtual (venv)
 cd ~/Daniel_AI
@@ -139,6 +140,9 @@ sudo systemctl restart daniel
 sudo systemctl status daniel
 sudo journalctl -u daniel -f
 ```
+
+> **Nota de Segurança & Operação:** O checklist completo de comandos de diagnóstico (`htop`, `uptime`, `ss`), manutenção de Git e acesso via SSH é mantido na pasta privada local `private/` (protegida via `.gitignore`), garantindo a preservação da chave privada SSH e credenciais.
+
 
 ---
 

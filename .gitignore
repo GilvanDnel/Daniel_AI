@@ -21,3 +21,7 @@ exports/
 
 # Logs
 *.log
+
+# Chaves e Arquivos Privados / Operacionais
+private/
+*.key

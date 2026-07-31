@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 import sys
 from pathlib import Path
 
@@ -193,10 +194,11 @@ def main() -> None:
         uploaded_file = None
 
     # Render Fixed Footer at bottom of screen
+    current_year = datetime.now().year
     st.markdown(
-        """
+        f"""
         <div class="app-footer-fixed">
-            Daniel AI &bull; Desenvolvido por <strong>Gilvan Silva</strong> &nbsp;|&nbsp; 
+            Daniel AI &bull; {current_year} &bull; Desenvolvido por&nbsp;<strong>Gilvan Silva</strong> &nbsp;|&nbsp; 
             <a href="https://github.com/GilvanDnel" target="_blank">GitHub</a> &bull; 
             <a href="https://www.linkedin.com/in/gilvan-silva-b52637114/" target="_blank">LinkedIn</a>
         </div>

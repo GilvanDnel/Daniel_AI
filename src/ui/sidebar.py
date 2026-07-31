@@ -158,7 +158,7 @@ def render_sidebar() -> None:
     st.sidebar.markdown(
         """
         <div style="font-size: 0.8rem; text-align: center; opacity: 0.8;">
-            Desenvolvido por <strong>Gilvan Silva</strong><br/>
+            Desenvolvido por&nbsp;<strong>Gilvan Silva</strong><br/>
             <a href="https://github.com/GilvanDnel" target="_blank" style="color: #60A5FA;">GitHub</a> &bull; 
             <a href="https://www.linkedin.com/in/gilvan-silva-b52637114/" target="_blank" style="color: #60A5FA;">LinkedIn</a>
         </div>
